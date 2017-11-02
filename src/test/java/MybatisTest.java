@@ -5,11 +5,15 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.Test;
 
+import javax.sql.rowset.serial.SerialBlob;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.*;
 
 public class MybatisTest {
@@ -19,9 +23,9 @@ public class MybatisTest {
     public static SqlSessionFactory sqlSessionFactory = null;
     public static SqlSession sqlSession = null;
 
-    private String url = "jdbc:mysql://localhost:3306/mybatis_test";
+    private String url = "jdbc:mysql://192.168.1.16:3306/mybatis_test";
     private String userName = "root";
-    private String password = "qwer1234";
+    private String password = "Abv=c_123456";
 
     static {
         try {
@@ -106,6 +110,40 @@ public class MybatisTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void selectAllBlack() {
+        try {
+            List<TBlack> list = sqlSession.selectList("cn.zmhappy.TBlackMapper.selectBlack");
+            list.forEach(e -> {
+                System.out.println(e.getId());
+                int count = 0;
+                byte[] buf = new byte[4];
+                for (byte b : e.getFeature()) {
+                    buf[count] = b;
+                    count++;
+                    if (count == 4) {
+                        count = 0;
+                        System.out.println(byte2float(buf, 0));
+                    }
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static float byte2float(byte[] b, int index) {
+        int l;
+        l = b[index + 0];
+        l &= 0xff;
+        l |= ((long) b[index + 1] << 8);
+        l &= 0xffff;
+        l |= ((long) b[index + 2] << 16);
+        l &= 0xffffff;
+        l |= ((long) b[index + 3] << 24);
+        return Float.intBitsToFloat(l);
     }
 
 }
